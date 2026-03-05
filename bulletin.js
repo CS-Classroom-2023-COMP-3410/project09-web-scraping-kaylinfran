@@ -35,12 +35,20 @@ async function searchBulletin() {
                 // get the course number
                 const num = parseInt(match[1].split(" ")[1]);
 
-                // checking to see if course number is upper level
+                
                 if (num >= 3000) {
-                    data.push({ course, title });
-                };
+                    // check if there is a pre-requisite listed
+                    const prereqElement = $(element).nextAll("p.courseblockdesc").first();
+                    const prereqText = prereqElement.text().replace(/\u00a0/g, " ").trim();
+
+                    // if there is a pre-requisite, do not include it in the output
+                    if (!prereqText.toLowerCase().includes("prerequisite")) {
+                        data.push({ course, title });
+                    }
+                }
             }
         });
+            
         // output to json file
         const result = { courses: data };
         await fs.writeJson("results/bulletin.json", result, { spaces: 2 });
