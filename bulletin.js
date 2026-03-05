@@ -44,7 +44,7 @@ async function searchBulletin() {
                     // if there is a pre-requisite, do not include it in the output
                     if (!prereqText.toLowerCase().includes("prerequisite")) {
                         data.push({ course, title });
-                    }
+                    } 
                 }
             }
         });

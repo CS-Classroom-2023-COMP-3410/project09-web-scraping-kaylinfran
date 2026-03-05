@@ -4,7 +4,7 @@ const fs = require('fs-extra');
 const puppeteer = require('puppeteer');
 
 
-async function scrapeEvents() {
+async function scrapeEvents() { 
     // url of the calendar page 
     const url = "https://www.du.edu/calendar";
 

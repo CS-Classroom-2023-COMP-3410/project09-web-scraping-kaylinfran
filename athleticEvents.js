@@ -1,53 +1,43 @@
 const axios = require('axios');
 const cheerio = require('cheerio');
 const fs = require('fs-extra');
-const puppeteer = require('puppeteer');
-const path = require('path');
 
-async function searchAthleticEvents() {
-    
-    const url = "https://denverpioneers.com/";
+async function searchAthletics() {
 
-    const output = await fetch(url);
-    const html = await output.text();
-    // const $ = cheerio.load(html);
+    // Url of website
+    const url = "https://denverpioneers.com/index.aspx";
 
-    // const duAthleticEvents = [];
+    // grab the html
+    const { data } = await axios.get(url);
+    const $ = cheerio.load(data);
 
-    // data-bind="text: atVs"
-    // data-bind="text: opponent.title"
-    // data-bind="formatDate:date, format:'MMMM D, YYYY'"
+    // data 
+    const events = [];
 
- 
-    const match = html.match(/var\s+initialData\s*=\s*(\{.*?\});/s);
-    if (!match) {
-        console.log("Could not find the object");
-        return;
-    } 
+    // grab data by looping through 
+    $("span.accessible-hide").each((index, element) => {
+        // grab the team
+        const duTeam = $(element).find('span[data-bind="text: sport.title"]').text().trim();
+        // grab opponent
+        const opponent = $(element).find('span[data-bind="text: opponent.title"]').text().trim();
+        // grab the data 
+        const date = $(element).find('span[data-bind*="formatDate"]').text().trim();
 
-    const obj = JSON.parse(match[1]); 
-    const teamName = obj.extra.school_name;
-    const events = obj.data;
-
-    const duAthleticEvents = events.map(event => {
-        return {
-            duTeam: teamName,
-            opponent: event.opponent.title,
-            date: event.date
+        // push the data to the events 
+        if (duTeam && opponent && date) {
+            events.push({
+                duTeam: duTeam,
+                opponent: opponent,
+                date: date
+            });
         }
     });
-
-    // save results to a JSON file// Ensure results folder exists
-    const resultsDir = path.join(__dirname, "results");
-    if (!fs.existsSync(resultsDir)) {
-        fs.mkdirSync(resultsDir);
-    }
-
-    const filePath = path.join(resultsDir, "athletic_events.json");
-
-    fs.writeFileSync(filePath, JSON.stringify(duAthleticEvents, null, 4));
-
-    console.log("Athletic events saved to results");
+    // save the data to a json file
+    await fs.ensureDir("results");
+    await fs.writeJson("results/athletic_events.json", { events }, { spaces: 2 });
+ 
+    console.log("Athletic events saved");
 }
 
-searchAthleticEvents();
+// was not able to get the data to load in but this is what I had
+searchAthletics();
